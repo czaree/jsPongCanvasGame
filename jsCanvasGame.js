@@ -3,13 +3,16 @@ const start = document.getElementById("startBtn");
 const stop = document.getElementById("stopBtn");
 const ctx = canvas.getContext("2d");
 var keys = {};
-let raf;
+var raf;
+var moveUp = false;
+var moveDown = false;
 
 const ball = {
   x: canvas.width / 2,
   y: canvas.height / 2,
   vx: 5,
   vy: 2,
+  angle: Math.atan(this.vy / this.vx),
   radius: 25,
   color: "#8CDE56",
   draw() {
@@ -37,6 +40,15 @@ const ball = {
     if (this.y + this.vy > canvas.height || this.y + this.vy < 0) {
       this.vy = -this.vy;
     }
+    this.angleAdjust();
+    console.log(this.angle);
+  },
+  angleAdjust() {
+    if (this.vx < 0) {
+      this.angle = Math.atan(this.vy / this.vx) + Math.PI;
+    } else {
+      this.angle = Math.atan(this.vy / this.vx);
+    }
   }
 }
 
@@ -63,7 +75,30 @@ const enemyBar = {
   draw() {
     ctx.fillStyle = this.color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
-  }
+  },
+  moveUp() {
+    while (moveUp == true) {
+      if (this.y > 25) {
+        this.y -= this.vy;
+      }
+    }
+  },
+  moveDown() {
+    while (moveDown == true) {
+      if (this.y < canvas.height - (this.height + 25)) {
+        this.y += this.vy;
+      }
+    }
+  },
+  stopMoveUp() {
+    moveUp == false;
+  },
+  stopMoveDown() {
+    moveDown == false;
+  },
+  /*predict() { //https://codeincomplete.com/articles/javascript-pong/part5/
+
+  }*/
 }
 
 //init
@@ -107,12 +142,9 @@ function input() {
   }
 }
 
-function enemyMove() {
-
-}
-
 function ballCollision() {
-  if (((ball.x + ball.vx <= playerBar.x + playerBar.width) && (ball.y + ball.vy > playerBar.y) && (ball.y + ball.vy <= playerBar.y + playerBar.height)) || ((ball.x + ball.vx >= enemyBar.x) && (ball.y + ball.vy > enemyBar.y) && (ball.y + ball.vy <= enemyBar.y + enemyBar.height))) {
+  if (((ball.x + ball.vx - ball.radius <= playerBar.x + playerBar.width) && (ball.y + ball.vy > playerBar.y) && (ball.y + ball.vy <= playerBar.y + playerBar.height)) || ((ball.x + ball.vx + ball.radius >= enemyBar.x) && (ball.y + ball.vy > enemyBar.y) && (ball.y + ball.vy <= enemyBar.y + enemyBar.height))) {
+    console.log("hit");
     return true;
   } else {
     return false;
