@@ -4,6 +4,7 @@ const stop = document.getElementById("stopBtn");
 const ctx = canvas.getContext("2d");
 var keys = {};
 var raf;
+var ballAngle;
 var moveUp = false;
 var moveDown = false;
 
@@ -12,7 +13,6 @@ const ball = {
   y: canvas.height / 2,
   vx: 5,
   vy: 2,
-  angle: Math.atan(this.vy / this.vx),
   radius: 25,
   color: "#8CDE56",
   draw() {
@@ -24,7 +24,7 @@ const ball = {
   },
   move() {
     if (ballCollision() == true) {
-      this.x = -this.x;
+      this.vx = -this.vx;
       ball.draw();
       playerBar.draw();
       enemyBar.draw();
@@ -40,15 +40,7 @@ const ball = {
     if (this.y + this.vy > canvas.height || this.y + this.vy < 0) {
       this.vy = -this.vy;
     }
-    this.angleAdjust();
-    console.log(this.angle);
-  },
-  angleAdjust() {
-    if (this.vx < 0) {
-      this.angle = Math.atan(this.vy / this.vx) + Math.PI;
-    } else {
-      this.angle = Math.atan(this.vy / this.vx);
-    }
+    calcBallAngle();
   }
 }
 
@@ -96,7 +88,7 @@ const enemyBar = {
   stopMoveDown() {
     moveDown == false;
   },
-  /*predict() { //https://codeincomplete.com/articles/javascript-pong/part5/
+  /*predict() { 
 
   }*/
 }
@@ -149,6 +141,16 @@ function ballCollision() {
   } else {
     return false;
   }
+}
+
+function calcBallAngle() {
+  ballAngle = Math.atan(ball.vy / ball.vx);
+  if (ball.vx < 0) {
+    ballAngle = Math.atan(ball.vy / ball.vx) + Math.PI;
+  } else {
+    ballAngle = Math.atan(ball.vy / ball.vx);
+  }
+  console.log(ballAngle);
 }
 
 function draw() {
