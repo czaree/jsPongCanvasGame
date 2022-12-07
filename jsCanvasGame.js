@@ -7,6 +7,8 @@ var raf;
 var ballAngle;
 var moveUp = false;
 var moveDown = false;
+var playerScore = 0;
+var enemyScore = 0;
 
 const ball = {
   x: canvas.width / 2,
@@ -88,9 +90,21 @@ const enemyBar = {
   stopMoveDown() {
     moveDown == false;
   },
-  /*predict() { 
+  /*predict() {
 
   }*/
+}
+
+function playerScoreDisplay() {
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "#235800";
+  ctx.fillText(playerScore, (canvas.width / 2) + 50, 30);
+}
+
+function enemyScoreDisplay() {
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "#235800";
+  ctx.fillText(playerScore, (canvas.width / 2) - 50, 30);
 }
 
 //init
@@ -98,6 +112,8 @@ if (canvas.getContext) {
   ball.draw();
   playerBar.draw();
   enemyBar.draw();
+  playerScoreDisplay();
+  enemyScoreDisplay();
 
   start.addEventListener("click", (e) => {
     raf = window.requestAnimationFrame(draw);
@@ -111,6 +127,8 @@ if (canvas.getContext) {
     ball.draw();
     playerBar.draw();
     enemyBar.draw();
+    playerScoreDisplay();
+    enemyScoreDisplay();
   });
 
   window.addEventListener("keydown", (e) => {
@@ -136,21 +154,37 @@ function input() {
 
 function ballCollision() {
   if (((ball.x + ball.vx - ball.radius <= playerBar.x + playerBar.width) && (ball.y + ball.vy > playerBar.y) && (ball.y + ball.vy <= playerBar.y + playerBar.height)) || ((ball.x + ball.vx + ball.radius >= enemyBar.x) && (ball.y + ball.vy > enemyBar.y) && (ball.y + ball.vy <= enemyBar.y + enemyBar.height))) {
-    console.log("hit");
     return true;
-  } else {
+  } else if (ball.x + ball.vx < playerBar.x) {
+    playerScore++;
+    resetPos();
+    console.log(playerScore, enemyScore);
+    return true;
+  } else if (ball.x + ball.vx > enemyBar.x + enemyBar.width) {
+    enemyScore++;
+    resetPos();
+    console.log(playerScore, enemyScore);
+    return true;
+  }
+  else {
     return false;
   }
 }
 
+function resetPos() {
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height / 2;
+  ball.vx = Math.floor(Math.random() * 6 + 2);
+}
+
 function calcBallAngle() {
-  ballAngle = Math.atan(ball.vy / ball.vx);
+  ballAngle = Math.atan(ball.vy / -ball.vx);
   if (ball.vx < 0) {
-    ballAngle = Math.atan(ball.vy / ball.vx) + Math.PI;
+    ballAngle = Math.atan(ball.vy / -ball.vx) + Math.PI;
   } else {
-    ballAngle = Math.atan(ball.vy / ball.vx);
+    ballAngle = Math.atan(ball.vy / -ball.vx);
   }
-  console.log(ballAngle);
+  //console.log(ballAngle);
 }
 
 function draw() {
@@ -158,6 +192,8 @@ function draw() {
   ball.draw();
   playerBar.draw();
   enemyBar.draw();
+  playerScoreDisplay();
+  enemyScoreDisplay();
   input();
 
   ball.move();
