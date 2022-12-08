@@ -4,15 +4,16 @@ const stop = document.getElementById("stopBtn");
 const ctx = canvas.getContext("2d");
 var keys = {};
 var raf;
-var ballAngle;
-var moveUp = false;
-var moveDown = false;
+var frameCount = 0;
+var moveUp = true;
+var moveDown = true;
 var playerScore = 0;
 var enemyScore = 0;
 
 const ball = {
   x: canvas.width / 2,
   y: canvas.height / 2,
+  predictY: canvas.height / 2,
   vx: 5,
   vy: 2,
   radius: 25,
@@ -42,7 +43,6 @@ const ball = {
     if (this.y + this.vy > canvas.height || this.y + this.vy < 0) {
       this.vy = -this.vy;
     }
-    calcBallAngle();
   }
 }
 
@@ -71,15 +71,15 @@ const enemyBar = {
     ctx.fillRect(this.x, this.y, this.width, this.height);
   },
   moveUp() {
-    while (moveUp == true) {
-      if (this.y > 25) {
+    if (moveUp == true) {
+      if (this.y > 10) {
         this.y -= this.vy;
       }
     }
   },
   moveDown() {
-    while (moveDown == true) {
-      if (this.y < canvas.height - (this.height + 25)) {
+    if (moveDown == true) {
+      if (this.y < canvas.height - (this.height + 10)) {
         this.y += this.vy;
       }
     }
@@ -89,10 +89,7 @@ const enemyBar = {
   },
   stopMoveDown() {
     moveDown == false;
-  },
-  /*predict() {
-
-  }*/
+  }
 }
 
 function playerScoreDisplay() {
@@ -104,7 +101,7 @@ function playerScoreDisplay() {
 function enemyScoreDisplay() {
   ctx.font = "20px Arial";
   ctx.fillStyle = "#235800";
-  ctx.fillText(playerScore, (canvas.width / 2) - 50, 30);
+  ctx.fillText(enemyScore, (canvas.width / 2) - 50, 30);
 }
 
 //init
@@ -124,6 +121,8 @@ if (canvas.getContext) {
     ctx.clearRect(0,0, canvas.width, canvas.height);
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
+    playerScore = 0;
+    enemyScore = 0;
     ball.draw();
     playerBar.draw();
     enemyBar.draw();
@@ -142,18 +141,26 @@ if (canvas.getContext) {
 
 function input() {
   if ("w" in keys) {
-    if (playerBar.y > 25) {
+    if (playerBar.y > 10) {
       playerBar.y -= playerBar.vy;
     }
   } else if ("s" in keys) {
-    if (playerBar.y < canvas.height - (playerBar.height + 25)) {
+    if (playerBar.y < canvas.height - (playerBar.height + 10)) {
       playerBar.y += playerBar.vy;
     }
+  }
+  if ("ArrowUp" in keys) {
+    enemyBar.moveUp();
+  } else if ("ArrowDown" in keys) {
+    enemyBar.moveDown();
   }
 }
 
 function ballCollision() {
   if (((ball.x + ball.vx - ball.radius <= playerBar.x + playerBar.width) && (ball.y + ball.vy > playerBar.y) && (ball.y + ball.vy <= playerBar.y + playerBar.height)) || ((ball.x + ball.vx + ball.radius >= enemyBar.x) && (ball.y + ball.vy > enemyBar.y) && (ball.y + ball.vy <= enemyBar.y + enemyBar.height))) {
+    if (ball.vx < 6) {
+      ball.vx += 0.1;
+    }
     return true;
   } else if (ball.x + ball.vx < playerBar.x) {
     playerScore++;
@@ -171,20 +178,28 @@ function ballCollision() {
   }
 }
 
+function enemyPredict() {
+  if (frameCount % 20 == 0) {
+    ball.predictY = ball.y + Math.floor(Math.random() * 20 - 10);
+  }
+  if (ball.vx > 0) {
+    if (ball.predictY < enemyBar.y + (enemyBar.height / 2) - 5) {
+      moveUp == true;
+      enemyBar.moveUp();
+    } else if (ball.predictY > enemyBar.y + (enemyBar.height / 2) + 5) {
+      moveDown == true;
+      enemyBar.moveDown();
+    } else {
+      /*moveUp == false;
+      moveDown == false;*/
+    }
+  }
+}
+
 function resetPos() {
   ball.x = canvas.width / 2;
   ball.y = canvas.height / 2;
-  ball.vx = Math.floor(Math.random() * 6 + 2);
-}
-
-function calcBallAngle() {
-  ballAngle = Math.atan(ball.vy / -ball.vx);
-  if (ball.vx < 0) {
-    ballAngle = Math.atan(ball.vy / -ball.vx) + Math.PI;
-  } else {
-    ballAngle = Math.atan(ball.vy / -ball.vx);
-  }
-  //console.log(ballAngle);
+  ball.vx = Math.floor(Math.random() * 5.5 + 3.75);
 }
 
 function draw() {
@@ -197,6 +212,9 @@ function draw() {
   input();
 
   ball.move();
+
+  enemyPredict();
+  frameCount++;
 
   raf = window.requestAnimationFrame(draw);
 }
